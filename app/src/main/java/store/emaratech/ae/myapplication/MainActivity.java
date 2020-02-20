@@ -16,6 +16,7 @@ import java.util.Map;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Predicate;
 import io.reactivex.rxjava3.core.Scheduler;
@@ -33,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
     private JsonPlaceHolder jsonPlaceHolder;
     private String TAG="Main";
 
+    CompositeDisposable compositeDisposable = new CompositeDisposable();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         jsonPlaceHolder = retrofit.create(JsonPlaceHolder.class);
+
+        //Disposable is to clean all observer
 
         Observable<Comments> commentsObservable = Observable
                 .fromIterable(DataSource.getCommentsWithQuery())
@@ -56,6 +61,8 @@ public class MainActivity extends AppCompatActivity {
         commentsObservable.subscribe(new Observer<Comments>() {
             @Override
             public void onSubscribe(Disposable d) {
+
+                compositeDisposable.add(d);
 
                 Log.e(TAG, "onSubscribe: called");
             }
@@ -401,5 +408,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        compositeDisposable.clear();
     }
 }
