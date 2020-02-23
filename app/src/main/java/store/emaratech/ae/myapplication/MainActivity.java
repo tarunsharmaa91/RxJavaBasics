@@ -1,10 +1,10 @@
 package store.emaratech.ae.myapplication;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -18,21 +18,18 @@ import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Predicate;
-import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-import retrofit2.http.Query;
 import store.emaratech.ae.myapplication.rx.DataSource;
 
 public class MainActivity extends AppCompatActivity {
 
     private JsonPlaceHolder jsonPlaceHolder;
-    private String TAG="Main";
+    private String TAG = "Main";
 
     CompositeDisposable compositeDisposable = new CompositeDisposable();
 
@@ -47,13 +44,21 @@ public class MainActivity extends AppCompatActivity {
         jsonPlaceHolder = retrofit.create(JsonPlaceHolder.class);
 
         //Disposable is to clean all observer
+        //Operator convert/transform data set to observable data set(create observable)
+
+        //FlatMap operator emit object randomly
 
         Observable<Comments> commentsObservable = Observable
+                //fromIterable and filter is operator
+                //This is in main thread
                 .fromIterable(DataSource.getCommentsWithQuery())
                 .subscribeOn(Schedulers.io())
                 //Filter we can use to execute some task on background thread
                 .filter(comments -> {
+                    //This is on background thread
                     Thread.sleep(1000);
+
+                    //if some data available then return true and pass to Observer means on Next
                     return true;
                 })
                 .observeOn(AndroidSchedulers.mainThread());
@@ -69,8 +74,8 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onNext(Comments comments) {
-                Log.e(TAG, "onSubscribe: called "+  Thread.currentThread().getName());
-                Log.e(TAG, "onSubscribe: called "+  comments.getPostId());
+                Log.e(TAG, "onSubscribe: called " + Thread.currentThread().getName());
+                Log.e(TAG, "onSubscribe: called " + comments.getPostId());
             }
 
             @Override
@@ -124,33 +129,30 @@ public class MainActivity extends AppCompatActivity {
 
     private void getCommentsWithMultipleQueryUsingQueryMap() {
         Map<String, String> hashMap = new HashMap<>();
-        hashMap.put("_sort","id");
-        hashMap.put("_order","desc");
-        hashMap.put("id","1");
+        hashMap.put("_sort", "id");
+        hashMap.put("_order", "desc");
+        hashMap.put("id", "1");
 
         Call<List<Comments>> call = jsonPlaceHolder.getCommentsQueryWithMultipleParametersWithQueryMap(hashMap);
         call.enqueue(new Callback<List<Comments>>() {
             @Override
             public void onResponse(@NotNull Call<List<Comments>> call, @NotNull Response<List<Comments>> response) {
 
-                if(response.isSuccessful())
-                {
+                if (response.isSuccessful()) {
                     List<Comments> comments = response.body();
                     assert comments != null;
-                    for(Comments comment : comments)
-                    {
+                    for (Comments comment : comments) {
                         Log.e("Response : ", String.valueOf(comment.getId()));
                     }
-                    Toast.makeText(MainActivity.this, "Success" , Toast.LENGTH_LONG).show();
-                }else
-                {
-                    Toast.makeText(MainActivity.this, response.code() , Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "Success", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(MainActivity.this, response.code(), Toast.LENGTH_LONG).show();
                 }
             }
 
             @Override
             public void onFailure(@NotNull Call<List<Comments>> call, @NotNull Throwable t) {
-                Toast.makeText(MainActivity.this, "Fail" , Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, "Fail", Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -164,29 +166,26 @@ public class MainActivity extends AppCompatActivity {
         // new Integer[]{1,2,3}
         //Call<List<Comments>> call = jsonPlaceHolder.getCommentsQueryWithMultipleParameters(4, "id", "desc",new Integer[]{1,2,3});
 
-        Call<List<Comments>> call = jsonPlaceHolder.getCommentsQueryWithMultipleParameters( "id", "desc",new Integer[]{1,2,3});
+        Call<List<Comments>> call = jsonPlaceHolder.getCommentsQueryWithMultipleParameters("id", "desc", new Integer[]{1, 2, 3});
         call.enqueue(new Callback<List<Comments>>() {
             @Override
             public void onResponse(@NotNull Call<List<Comments>> call, @NotNull Response<List<Comments>> response) {
 
-                if(response.isSuccessful())
-                {
+                if (response.isSuccessful()) {
                     List<Comments> comments = response.body();
                     assert comments != null;
-                    for(Comments comment : comments)
-                    {
+                    for (Comments comment : comments) {
                         Log.e("Response : ", String.valueOf(comment.getId()));
                     }
-                    Toast.makeText(MainActivity.this, "Success" , Toast.LENGTH_LONG).show();
-                }else
-                {
-                    Toast.makeText(MainActivity.this, response.code() , Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "Success", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(MainActivity.this, response.code(), Toast.LENGTH_LONG).show();
                 }
             }
 
             @Override
             public void onFailure(@NotNull Call<List<Comments>> call, @NotNull Throwable t) {
-                Toast.makeText(MainActivity.this, "Fail" , Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, "Fail", Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -197,24 +196,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(@NotNull Call<List<Comments>> call, @NotNull Response<List<Comments>> response) {
 
-                if(response.isSuccessful())
-                {
+                if (response.isSuccessful()) {
                     List<Comments> comments = response.body();
                     assert comments != null;
-                    for(Comments comment : comments)
-                    {
+                    for (Comments comment : comments) {
                         Log.e("Response : ", String.valueOf(comment.getPostId()));
                     }
-                    Toast.makeText(MainActivity.this, "Success" , Toast.LENGTH_LONG).show();
-                }else
-                {
-                    Toast.makeText(MainActivity.this, response.code() , Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "Success", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(MainActivity.this, response.code(), Toast.LENGTH_LONG).show();
                 }
             }
 
             @Override
             public void onFailure(@NotNull Call<List<Comments>> call, @NotNull Throwable t) {
-                Toast.makeText(MainActivity.this, "Fail" , Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, "Fail", Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -225,24 +221,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(@NotNull Call<List<Comments>> call, @NotNull Response<List<Comments>> response) {
 
-                if(response.isSuccessful())
-                {
+                if (response.isSuccessful()) {
                     List<Comments> comments = response.body();
                     assert comments != null;
-                    for(Comments comment : comments)
-                    {
+                    for (Comments comment : comments) {
                         Log.e("Response : ", String.valueOf(comment.getPostId()));
                     }
-                    Toast.makeText(MainActivity.this, "Success" , Toast.LENGTH_LONG).show();
-                }else
-                {
-                    Toast.makeText(MainActivity.this, response.code() , Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "Success", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(MainActivity.this, response.code(), Toast.LENGTH_LONG).show();
                 }
             }
 
             @Override
             public void onFailure(@NotNull Call<List<Comments>> call, @NotNull Throwable t) {
-                Toast.makeText(MainActivity.this, "Fail" , Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, "Fail", Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -253,24 +246,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(@NotNull Call<List<Posts>> call, @NotNull Response<List<Posts>> response) {
 
-                if(response.isSuccessful())
-                {
+                if (response.isSuccessful()) {
                     List<Posts> posts = response.body();
                     assert posts != null;
-                    for(Posts post : posts)
-                    {
+                    for (Posts post : posts) {
                         Log.e("Response : ", post.getTitle());
                     }
-                    Toast.makeText(MainActivity.this, "Success" , Toast.LENGTH_LONG).show();
-                }else
-                {
-                    Toast.makeText(MainActivity.this, response.code() , Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "Success", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(MainActivity.this, response.code(), Toast.LENGTH_LONG).show();
                 }
             }
 
             @Override
             public void onFailure(@NotNull Call<List<Posts>> call, @NotNull Throwable t) {
-                Toast.makeText(MainActivity.this, "Fail" , Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, "Fail", Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -283,8 +273,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<Posts> call, Response<Posts> response) {
 
-                if(!response.isSuccessful())
-                {
+                if (!response.isSuccessful()) {
                     return;
                 }
                 Posts res = response.body();
@@ -293,20 +282,19 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<Posts> call, Throwable t) {
-                Toast.makeText(MainActivity.this, "Fail" , Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, "Fail", Toast.LENGTH_LONG).show();
             }
         });
     }
 
     private void createPostUsingUrlEncoded() {
 
-        Call<Posts> call = jsonPlaceHolder.createPostUsingForm(1,  "titleName", "textToDisplay");
+        Call<Posts> call = jsonPlaceHolder.createPostUsingForm(1, "titleName", "textToDisplay");
         call.enqueue(new Callback<Posts>() {
             @Override
             public void onResponse(Call<Posts> call, Response<Posts> response) {
 
-                if(!response.isSuccessful())
-                {
+                if (!response.isSuccessful()) {
                     return;
                 }
                 Posts res = response.body();
@@ -315,7 +303,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<Posts> call, Throwable t) {
-                Toast.makeText(MainActivity.this, "Fail" , Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, "Fail", Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -325,7 +313,7 @@ public class MainActivity extends AppCompatActivity {
         // This is just for representation that this way we can pass data as well and  its result will be fail
 
         Map<String, String> map = new HashMap<>();
-        map.put("id","1");
+        map.put("id", "1");
 
         List<String> list = new ArrayList<>();
         list.add("value");
@@ -335,8 +323,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<Posts> call, Response<Posts> response) {
 
-                if(!response.isSuccessful())
-                {
+                if (!response.isSuccessful()) {
                     return;
                 }
                 Posts res = response.body();
@@ -345,19 +332,18 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<Posts> call, Throwable t) {
-                Toast.makeText(MainActivity.this, "Fail" , Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, "Fail", Toast.LENGTH_LONG).show();
             }
         });
     }
 
     private void updateDataUsingPut() {
         Posts post = new Posts(1, null, "titleName", "textToDisplay");
-        Call<Posts> call = jsonPlaceHolder.updatePostData(1,post);
+        Call<Posts> call = jsonPlaceHolder.updatePostData(1, post);
         call.enqueue(new Callback<Posts>() {
             @Override
             public void onResponse(@NotNull Call<Posts> call, @NotNull Response<Posts> response) {
-                if(!response.isSuccessful())
-                {
+                if (!response.isSuccessful()) {
                     return;
                 }
                 Posts res = response.body();
@@ -366,7 +352,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(@NotNull Call<Posts> call, @NotNull Throwable t) {
-                Toast.makeText(MainActivity.this, "Fail" , Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, "Fail", Toast.LENGTH_LONG).show();
             }
         });
 
@@ -374,12 +360,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateDataUsingPatch() {
         Posts post = new Posts(1, null, "titleNameAfterPatch", "textToDisplay");
-        Call<Posts> call = jsonPlaceHolder.updatePostDataPatch(1,post);
+        Call<Posts> call = jsonPlaceHolder.updatePostDataPatch(1, post);
         call.enqueue(new Callback<Posts>() {
             @Override
             public void onResponse(@NotNull Call<Posts> call, @NotNull Response<Posts> response) {
-                if(!response.isSuccessful())
-                {
+                if (!response.isSuccessful()) {
                     return;
                 }
                 Posts res = response.body();
@@ -388,7 +373,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(@NotNull Call<Posts> call, @NotNull Throwable t) {
-                Toast.makeText(MainActivity.this, "Fail" , Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, "Fail", Toast.LENGTH_LONG).show();
             }
         });
 
