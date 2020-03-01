@@ -5,6 +5,7 @@ import androidx.room.Delete;
 import java.util.List;
 import java.util.Map;
 
+import io.reactivex.Observable;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
@@ -25,8 +26,10 @@ import retrofit2.http.Url;
  */
 public interface JsonPlaceHolder {
 
+    //NOTE : Observable is added here in RX java case
+
     @GET("posts")
-    Call<List<Posts>> getPost();
+    Observable<List<Posts>> getPost();
 
     @GET("posts/{id}/comments")
     Call<List<Comments>> getComments(@Path("id") int postId);

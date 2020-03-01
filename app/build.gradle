@@ -23,6 +23,10 @@ android {
         enabled = true
     }
 
+    packagingOptions {
+        exclude 'META-INF/rxjava.properties'
+    }
+
     testOptions {
         unitTests.returnDefaultValues = true
         unitTests {
@@ -60,6 +64,11 @@ dependencies {
     // retrofit
     implementation "com.squareup.retrofit2:retrofit:2.6.0"
     implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
+    //Additional library to add for rx with retrofit
+    //This convert retrofit call object to observable
+    implementation 'com.squareup.retrofit2:adapter-rxjava:2.4.0'
+    implementation 'com.jakewharton.retrofit:retrofit2-rxjava2-adapter:1.0.0'
+
     // Reactive
     implementation "io.reactivex.rxjava3:rxjava:$rootProject.rxjava3Version"
     implementation "io.reactivex.rxjava3:rxandroid:$rootProject.rxandroidVersion"
