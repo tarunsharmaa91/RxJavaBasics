@@ -2,31 +2,23 @@ package store.emaratech.ae.myapplication;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.SearchView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
-import io.reactivex.ObservableSource;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
 import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 import store.emaratech.ae.myapplication.rx.DataSource;
 
 public class MainActivity extends AppCompatActivity {
@@ -36,12 +28,13 @@ public class MainActivity extends AppCompatActivity {
 
     CompositeDisposable compositeDisposable = new CompositeDisposable();
 
+    SearchView searchView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
+        searchView = findViewById(R.id.searchView);
         //Disposable is to clean all observer
         //Operator convert/transform data set to observable data set(create observable)
 
@@ -49,46 +42,80 @@ public class MainActivity extends AppCompatActivity {
         //getValueRandomlyFlatMap();
 
         //Get Posts using Rx with Retrofit
-        getPosts();
-
-
-
-        //Normal Use of Get method
         //getPosts();
 
-        //Get method with additional parameter
-        //getComments();
+        //Create operator is used to create a single observable like "T converted to Observable<T>"
 
-        //Use of Single Query
-        //getCommentsWithQuery();
+        //Just operator only accept upto 10 entries
 
-        //Use of Multiple Query
-        //getCommentsWithMultipleQuery();
+        //Range operator is used if you want to iterate through the particular range of list
+        //and perform some action on it on the background
 
-        //Above thing we can achieve using QueryMap as well
-        //getCommentsWithMultipleQueryUsingQueryMap();
+        //Repeat operator when you want to repeat the range again
 
+        //Buffer operator gather items from observable and emit them in bundle(Order is maintained)
 
-        // POST METHOD
+        //Debounce operator filter out item (for search after few milli seconds) to minimize api call
+        //SwitchMap to stop previous query
+        debounceOperator();
 
-        //Normal post method
-        //createPost();
+        //ThrottleFirst operator for restricting button spamming(multiple clicks)
 
-        //Post Using Url Encoded
-        //createPostUsingUrlEncoded();
+        //ConcatMap operator is same like flatMap only difference is it maintains order but with less speed
 
-        //Post Using Url Encoded
-        //createPostUsingUrlEncodedMix();
+    }
 
-        //Put Method
-        //updateDataUsingPut();
+    private void debounceOperator() {
 
-        //Put Method
-        //updateDataUsingPatch();
+        Observable<String> observableQueryText = Observable.create(new ObservableOnSubscribe<String>() {
+            @Override
+            public void subscribe(ObservableEmitter<String> emitter) throws Exception {
+                searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                    @Override
+                    public boolean onQueryTextSubmit(String query) {
+                        if(!emitter.isDisposed())
+                        {
+                            emitter.onComplete();
+                        }
+                        return false;
+                    }
 
-        //Delete data
-        //deleteData();
+                    @Override
+                    public boolean onQueryTextChange(String newText) {
+                        if(!emitter.isDisposed())
+                        {
+                            emitter.onNext(newText);
+                        }
+                        return false;
+                    }
+                });
+            }
+        }).debounce(1000, TimeUnit.MILLISECONDS)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io()
+                );
 
+        observableQueryText.subscribe(new Observer<String>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+                compositeDisposable.add(d);
+            }
+
+            @Override
+            public void onNext(String s) {
+                Toast.makeText(MainActivity.this,s, Toast.LENGTH_SHORT ).show();
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                //Do Nothing
+            }
+
+            @Override
+            public void onComplete() {
+                Toast.makeText(MainActivity.this,searchView.getQuery().toString(), Toast.LENGTH_SHORT ).show();
+            }
+        });
     }
 
     private void getValueRandomlyFlatMap() {
@@ -138,33 +165,33 @@ public class MainActivity extends AppCompatActivity {
         ServiceGenerator.getJsonPlaceholder()
                 .getPost()
                 .subscribeOn(Schedulers.io())
-                 .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Observer<List<Posts>>() {
-            @Override
-            public void onSubscribe(Disposable d) {
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<List<Posts>>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
 
-                compositeDisposable.add(d);
-            }
+                        compositeDisposable.add(d);
+                    }
 
-            @Override
-            public void onNext(List<Posts> posts) {
-                assert posts != null;
-                for (Posts post : posts) {
-                    Log.e("Response : ", post.getTitle());
-                }
-                //Toast.makeText(MainActivity.this, "Success", Toast.LENGTH_LONG).show();
-            }
+                    @Override
+                    public void onNext(List<Posts> posts) {
+                        assert posts != null;
+                        for (Posts post : posts) {
+                            Log.e("Response : ", post.getTitle());
+                        }
+                        //Toast.makeText(MainActivity.this, "Success", Toast.LENGTH_LONG).show();
+                    }
 
-            @Override
-            public void onError(Throwable e) {
-                Toast.makeText(MainActivity.this, "Fail", Toast.LENGTH_LONG).show();
-            }
+                    @Override
+                    public void onError(Throwable e) {
+                        Toast.makeText(MainActivity.this, "Fail", Toast.LENGTH_LONG).show();
+                    }
 
-            @Override
-            public void onComplete() {
-                Toast.makeText(MainActivity.this, "Completed", Toast.LENGTH_LONG).show();
-            }
-        });
+                    @Override
+                    public void onComplete() {
+                        Toast.makeText(MainActivity.this, "Completed", Toast.LENGTH_LONG).show();
+                    }
+                });
 
        /* call.enqueue(new Callback<List<Posts>>() {
             @Override
@@ -188,7 +215,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });*/
     }
-
 
 
     @Override
